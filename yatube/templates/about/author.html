@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Об авторе проекта{% endblock %}
+{% load static %}
+{% block content %}
+  <div class="container py-3">
+    <h1>Привет, я автор</h1>
+    <p>
+      Меня зовут Никита, и мне нравится учится, но иногда бывает трудно!(
+    </p>
+    <p>
+      <div class="container">
+        <img src="{% static "img/faer.jpg" %}"
+      </div>
+      <div class="container">
+        Как я ощущаю себя под конец спринта, когда проект перестает работать.
+      </div>
+    </p>
+  </div>
+{% endblock %} 
