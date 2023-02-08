@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from posts.forms import PostForm
-from posts.models import Post, Group, User
+from posts.models import Post, Group, User, Comment
 from posts.tests import const_value
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -101,3 +101,24 @@ class PostCreateFormTests(TestCase):
             args=[self.post.id]
         ))
         self.assertNotEqual(redact_post.text, post_for_test.text)
+
+    def test_create_comments(self):
+        comments_count = Comment.objects.count()
+        form_data = {
+            'post': self.post,
+            'author': self.user,
+            'text': const_value.COMMENT_TEXT,
+        }
+        response = self.authorized_client_author.post(
+            reverse(const_value.URL_CREATE_COMMENT, args=[self.post.id]),
+            data=form_data,
+            follow=True,
+        )
+        self.assertRedirects(response, reverse(
+            const_value.URL_POST_DETAIL, args=[self.post.id]
+        ))
+        self.assertEqual(Comment.objects.count(), comments_count + 1)
+        self.assertTrue(Comment.objects.filter(
+            text=const_value.COMMENT_TEXT,
+            author=self.user,
+        ).exists())

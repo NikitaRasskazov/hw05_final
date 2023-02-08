@@ -40,6 +40,10 @@ class PostURLTests(TestCase):
             const_value.URL_POST_DETAIL,
             args=[cls.post.id]
         )
+        cls.CREATE_COMMENT = reverse(
+            const_value.URL_CREATE_COMMENT,
+            args=[cls.post.id]
+        )
 
     def setUp(self):
         self.guest_client = Client()
@@ -87,6 +91,12 @@ class PostURLTests(TestCase):
                 HTTPStatus.FOUND
             ),
             (
+                self.CREATE_COMMENT,
+                HTTPStatus.FOUND,
+                HTTPStatus.FOUND,
+                HTTPStatus.FOUND
+            ),
+            (
                 const_value.URL_UNEXISTING_PAGE,
                 HTTPStatus.NOT_FOUND,
                 HTTPStatus.NOT_FOUND,
@@ -123,6 +133,8 @@ class PostURLTests(TestCase):
                 const_value.URL_POST_EDIT,
                 args=[PostURLTests.post.id]
             ): const_value.TEMPLATE_POST_EDIT,
+            const_value.URL_UNEXISTING_PAGE:
+                const_value.TEMPLATE_404_ERROR,
             reverse(
                 const_value.URL_POST_CREATE
             ): const_value.TEMPLATE_POST_CREATE
