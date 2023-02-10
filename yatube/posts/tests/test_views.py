@@ -8,7 +8,7 @@ from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django import forms
 
-from posts.models import Post, Group, User, Follow
+from posts.models import Post, Group, User, Follow, Comment
 from posts.tests import const_value
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -32,14 +32,7 @@ class PostPagesTests(TestCase):
             slug=const_value.GROUP_SLUG_TEST,
             description=const_value.GROUP_DESCRIPTION_TEST,
         )
-        cls.small_gif = (
-            b'\x47\x49\x46\x38\x39\x61\x02\x00'
-            b'\x01\x00\x80\x00\x00\x00\x00\x00'
-            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-            b'\x0A\x00\x3B'
-        )
+        cls.small_gif = const_value.SMALL_GIF
         cls.uploaded = SimpleUploadedFile(
             name='small.gif',
             content=cls.small_gif,
@@ -53,11 +46,13 @@ class PostPagesTests(TestCase):
         )
 
     def setUp(self):
+        self.guest_client = Client()
         self.another_author = User.objects.create_user(
             username=const_value.ANOTHER_AUTHOR
         )
         self.another_author_authorized = Client()
         self.another_author_authorized.force_login(self.another_author)
+        cache.clear()
 
     @classmethod
     def tearDownClass(cls):
@@ -240,3 +235,64 @@ class PostPagesTests(TestCase):
         ))
         any_object = response.context[const_value.PAGE_OF_PAGINATOR]
         self.assertEqual(len(any_object), 0)
+
+    def test_following_yourself(self):
+        self.authorized_client.get(reverse(
+            const_value.URL_FOLLOWING,
+            args=[self.user.username]
+        ))
+        self.assertFalse(
+            Follow.objects.filter(
+                author=self.user,
+                user=self.user
+            ).exists()
+        )
+
+    def test_following_guest_client(self):
+        follows_count = Follow.objects.count()
+        self.guest_client.get(reverse(
+            const_value.URL_FOLLOWING,
+            args=[self.user.username]
+        ))
+        self.assertEqual(Follow.objects.count(), follows_count)
+
+    def test_create_comments(self):
+        comments_count = Comment.objects.count()
+        form_data = {
+            'post': self.post,
+            'author': self.user,
+            'text': const_value.COMMENT_TEXT,
+        }
+        response = self.authorized_client.post(
+            reverse(const_value.URL_CREATE_COMMENT, args=[self.post.id]),
+            data=form_data,
+            follow=True,
+        )
+        self.assertEqual(Comment.objects.count(), comments_count + 1)
+        self.assertTrue(
+            Comment.objects.filter(
+                text=const_value.COMMENT_TEXT,
+            ).exists()
+        )
+        comment_additional = response.context['comments'][0]
+        self.assertEqual(comment_additional.post, self.post)
+        self.assertEqual(comment_additional.author, self.user)
+        self.assertEqual(comment_additional.text, form_data['text'])
+
+    def test_guest_client_notcreate_comment(self):
+        comments_count = Comment.objects.count()
+        form_data = {
+            'author': self.user,
+            'text': const_value.COMMENT_TEXT,
+        }
+        self.guest_client.post(
+            reverse(const_value.URL_CREATE_COMMENT, args=[self.post.id]),
+            data=form_data,
+            follow=True,
+        )
+        self.assertEqual(Comment.objects.count(), comments_count)
+        self.assertFalse(
+            Comment.objects.filter(
+                text=const_value.COMMENT_TEXT
+            ).exists()
+        )

@@ -1,12 +1,13 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 TITLE_MAX_LENGTH = 200
 SLUG_MUX_LENGTH = 50
 NUMBER_OF_CHARACTERS = 15
 CHARACTERS_IN_COMMENT = 30
+
+User = get_user_model()
 
 
 class Group(models.Model):
@@ -81,3 +82,20 @@ class Follow(models.Model):
         on_delete=models.CASCADE,
         related_name='following'
     )
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=('user', 'author'),
+                name='once_following_on_author'
+            ),
+        )
+
+    def __str__(self):
+        return (
+            f'Пользователь {self.user} это подписчик {self.author}'
+        )
+
+    def not_subs_yourself(self):
+        if self.user == self.author:
+            raise ValidationError('Ты не модешь подписаться на себя!')
