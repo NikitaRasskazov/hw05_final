@@ -96,6 +96,6 @@ class Follow(models.Model):
             f'Пользователь {self.user} это подписчик {self.author}'
         )
 
-    def not_subs_yourself(self):
+    def clean(self):
         if self.user == self.author:
             raise ValidationError('Ты не модешь подписаться на себя!')
