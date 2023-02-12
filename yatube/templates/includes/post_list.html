@@ -20,11 +20,5 @@
         <img class="card-img my-2" src="{{ im.url }}">
       {% endthumbnail %}
     <a href="{% url 'posts:post_detail' post.pk %}">подробная информация</a><br>
-    {% if group %}
-    {% elif post.group %}
-        <a href="{% url 'posts:group_posts' post.group.slug %}">
-            все записи группы: "{{ post.group }}"
-        </a>
-    {% endif %} 
     </article>
 </article>
