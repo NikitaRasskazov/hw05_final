@@ -2,12 +2,10 @@
 <article>
     <ul>
       <li>
-        {% if author %}
-          Автор: <a>{{ author.get_full_name }}</a>
-        {% else %}  
-          Автор: <a href="{% url "posts:profile" post.author %}"> 
-           {{ post.author.get_full_name }} 
-          </a>
+          Автор: <a>{{ post.author.get_full_name }}</a>
+          <br>
+        {% if post.author and not profile_author %}  
+          <a href="{% url "posts:profile" post.author.username %}">Все посты пользователя</a>
         {% endif %}
       </li>
       <li>
@@ -20,5 +18,10 @@
         <img class="card-img my-2" src="{{ im.url }}">
       {% endthumbnail %}
     <a href="{% url 'posts:post_detail' post.pk %}">подробная информация</a><br>
+    {% if post.group and not list_group %}
+      <a href="{% url 'posts:group_posts' post.group.slug %}">
+          все записи группы: "{{ post.group }}"
+      </a>
+    {% endif %}
     </article>
 </article>
