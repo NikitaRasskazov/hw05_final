@@ -3,8 +3,41 @@
 {% block title %}Пост {{ post.text|truncatechars:30 }}{% endblock %}
 {% block content %}
   <div class="row">
+    <!--Как я могу вынести общую информацию о посте из post_detail и 
+      остальных шаблонов в один инклюд если у нас информация должна визуально 
+      отображаться по разному, оформление сильно отличается на разных страницах-->
     <aside class="col-12 col-md-3">
-      {% include 'includes/post_list.html' with not_post_detail=False %}
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+          Дата публикации: {{ post.pub_date|date:"d E Y" }}
+        </li>
+        {% if post.group %}   
+          <li class="list-group-item">
+          Группа: {{ post.group }}
+          <a href="{% url 'posts:group_posts' post.group.slug %}">
+            все записи группы
+          </a>
+        {% endif %}
+        </li>
+        <li class="list-group-item">
+          Автор: {{ post.author.get_full_name }}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          Всего постов автора:  <span>{{ post.author.posts.count }}</span>
+        </li>
+        <li class="list-group-item">
+          <a href="{% url 'posts:profile' post.author.username %}">
+            все посты пользователя
+          </a>
+        </li>
+        {% if post.author.username == request.user.username %}
+          <li class="list-group-item">
+            <a href="{% url 'posts:post_edit' post.pk %}">
+              Редактировать пост
+            </a>
+          </li>
+        {% endif %}
+      </ul>
     </aside>
     <article class="col-12 col-md-9">
       {% thumbnail post.image "960x339" crop="center" upscale=True as im %}

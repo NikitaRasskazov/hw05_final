@@ -43,6 +43,10 @@ def profile(request, username):
             author=author
         ).exists()
     )
+    # Почему здесь author избыточная переменная если она почти везде фигурирует
+    # + pytest без author не проходит,
+    # даже если она избыточная, тогда как мне по другому доставать в шаблоне
+    # информацию об авторе и проходить тесты?
     context = {
         'author': author,
         'page_obj': page_obj,

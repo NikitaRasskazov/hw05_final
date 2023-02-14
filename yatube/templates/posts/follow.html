@@ -5,7 +5,7 @@
   {% include 'posts/includes/switcher.html' with follow=True %}     
   <h1>Публикации пользователей на которых вы подписаны</h1>
   {% for post in page_obj %}
-    {% include 'includes/post_list.html' with list_group=False with not_post_detail=True %}
+    {% include 'includes/post_list.html' with list_group=False %}
   {% if not forloop.last %}<hr>{% endif %}
   {% endfor %}
   {% include 'posts/includes/paginator.html' %}
